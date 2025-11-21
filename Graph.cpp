@@ -1,4 +1,4 @@
-
+#include "GraphBase.hpp"
 #include "Graph.hpp"
 #include <limits>
 #include <queue>

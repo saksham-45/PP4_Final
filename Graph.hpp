@@ -19,7 +19,6 @@ class Vertex;
 */
 class PriorityQueue {
     std::vector<std::pair<unsigned long, Vertex*>> heap;
-    std::unordered_map<std::string, unsigned long> hash_table; //for quickly knowing hash index of a node based on unique label
     void bubbleUp(int index);
     void bubbleDown(int index);
 
@@ -28,7 +27,6 @@ public:
 
     bool isEmpty() const{return heap.empty();};
     void push(unsigned long dist, Vertex* v);
-    void updateDistance(std::string label, unsigned long newKey);
     std::pair<unsigned long, Vertex*> pop();
 };
 /*Edge Class: implementation of undirected edge 
@@ -82,18 +80,19 @@ public:
     std::unordered_map<std::string, Vertex*> vertices;
 
     Graph() = default; // default in case of memcpy
+    ~Graph() override = default;
 
-    void addVertex(std::string label);
-    void removeVertex(std::string label);
-    void addEdge(std:: string label1, std:: string label2, unsigned long weight);
-    void removeEdge(std::string label1, std::string label2);
+    void addVertex(std::string label) override;
+    void removeVertex(std::string label) override;
+    void addEdge(std::string label1, std::string label2, unsigned long weight) override;
+    void removeEdge(std::string label1, std::string label2) override;
     /*shortestPath(): 
     - finds shortest path between two vertexes by performing dijkstra's algorithm
       over a 
     algorithm:
       Input: Weighted graph G ()
     */
-    unsigned long shortestPath(std::string startLabel, std::string EndLabel, std::vector<std::string> &path);
+    unsigned long shortestPath(std::string startLabel, std::string endLabel, std::vector<std::string> &path) override;
 
 };
 
