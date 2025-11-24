@@ -50,6 +50,24 @@ std::pair<unsigned long, Vertex*> PriorityQueue::pop() {
     return top;
 }
 
+Graph::~Graph() {
+    // FIX #1: avoid double deletion of edges
+    std::unordered_set<Edge*> deleted;
+
+    for (auto& [lbl, v] : vertices) {
+        for (Edge* e : v->adjEdges) {
+            if (!deleted.count(e)) {
+                deleted.insert(e);
+                delete e;
+            }
+        }
+        delete v;
+    }
+
+    // Clearing container to avoid dangling pointers
+    vertices.clear();
+}
+
 // ---------------- Graph Functions ----------------
 
 void Graph::addVertex(std::string label) {
@@ -66,14 +84,18 @@ void Graph::removeVertex(std::string label) {
     Vertex* target = vertices[label];
 
     for (auto& [lbl, v] : vertices) {
-        v->adjEdges.erase(
-            std::remove_if(
-                v->adjEdges.begin(),
-                v->adjEdges.end(),
-                [&](Edge* e){ return e->u == target || e->v == target; }
-            ),
-            v->adjEdges.end()
-        );
+        auto& edges = v->adjEdges;
+
+        for (auto it = edges.begin(); it != edges.end();) {
+            Edge* e = *it;
+
+            if (e->u == target || e->v == target) {
+                it = edges.erase(it);
+                delete e;   // FIX HERE
+            } else {
+                ++it;
+            }
+        }
     }
 
     delete target;
@@ -102,20 +124,32 @@ void Graph::removeEdge(std::string label1, std::string label2) {
     Vertex* u = vertices[label1];
     Vertex* v = vertices[label2];
 
-    auto removeFrom = [&](Vertex* x) {
-        x->adjEdges.erase(
-            std::remove_if(
-                x->adjEdges.begin(),
-                x->adjEdges.end(),
-                [&](Edge* e){ return (e->u == u && e->v == v) || (e->u == v && e->v == u); }
-            ),
-            x->adjEdges.end()
-        );
-    };
+    Edge* toDelete = nullptr;
 
-    removeFrom(u);
-    removeFrom(v);
+    for (auto it = u->adjEdges.begin(); it != u->adjEdges.end(); ) {
+        Edge* e = *it;
+        if ((e->u == u && e->v == v) || (e->u == v && e->v == u)) {
+            toDelete = e;
+            it = u->adjEdges.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    for (auto it = v->adjEdges.begin(); it != v->adjEdges.end(); ) {
+        Edge* e = *it;
+        if (e == toDelete) {
+            it = v->adjEdges.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    if (toDelete) {
+        delete toDelete;
+    }
 }
+
 
 unsigned long Graph::shortestPath(std::string startLabel, std::string endLabel, std::vector<std::string>& path) {
     if (!vertices.count(startLabel) || !vertices.count(endLabel)) return infinity;

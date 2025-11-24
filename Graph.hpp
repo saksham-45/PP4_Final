@@ -80,7 +80,7 @@ public:
     std::unordered_map<std::string, Vertex*> vertices;
 
     Graph() = default; // default in case of memcpy
-    ~Graph() override = default;
+    ~Graph() override;
 
     void addVertex(std::string label) override;
     void removeVertex(std::string label) override;
